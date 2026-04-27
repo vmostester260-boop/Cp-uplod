@@ -3,14 +3,26 @@ import subprocess
 import asyncio
 import time
 
-async def download_video(url, name, message):
-    # File name se characters saaf karna
+# Ye function ab kitne bhi arguments (3 ya 4) handle kar lega
+async def download_video(*args, **kwargs):
+    # Arguments ko extract karna (Safety Check)
+    url = args[0] if len(args) > 0 else None
+    name = args[1] if len(args) > 1 else "video"
+    message = args[2] if len(args) > 2 else None
+    
+    if not url or not message:
+        print("URL or Message object missing!")
+        return None
+
+    # File name cleaning
     clean_name = "".join([c for c in name if c.isalnum() or c in (' ', '.', '_')]).strip()
     if not clean_name.endswith(".mp4"):
         clean_name += ".mp4"
 
-    # Edit message to show downloading status
-    await message.edit(f"📥 **Downloading:** `{name}`\n\n⚡ *Please wait...*")
+    try:
+        await message.edit(f"📥 **Downloading:** `{name}`\n\n⚡ *Bypass logic active...*")
+    except:
+        pass
 
     # High-quality headers to bypass 403 Forbidden
     cmd = [
@@ -21,8 +33,6 @@ async def download_video(url, name, message):
         "--add-header", "Referer:https://web.classplusapp.com/",
         "--no-check-certificate",
         "--concurrent-fragments", "16",
-        "--fragment-retries", "10",
-        "--retry-sleep", "5",
         "-o", clean_name,
         url
     ]
@@ -37,16 +47,24 @@ async def download_video(url, name, message):
         stdout, stderr = await process.communicate()
 
         if process.returncode == 0:
-            await message.edit(f"✅ **Download Complete!**\n📤 *Uploading to Telegram...*")
+            try:
+                await message.edit(f"✅ **Download Complete!**\n📤 *Uploading...*")
+            except:
+                pass
             return clean_name
         else:
             error_msg = stderr.decode().strip()
-            if "403" in error_msg:
-                await message.edit("❌ **Error 403: Forbidden**\nClassplus ne block kiya hai. Headers se kaam nahi chala.")
-            else:
+            print(f"yt-dlp error: {error_msg}")
+            try:
                 await message.edit(f"❌ **Download Failed!**\nError: `{error_msg[:100]}`")
+            except:
+                pass
             return None
 
     except Exception as e:
-        await message.edit(f"⚠️ **Unexpected Error:** `{str(e)}`")
+        print(f"Python error: {str(e)}")
+        try:
+            await message.edit(f"⚠️ **Error:** `{str(e)}`")
+        except:
+            pass
         return None
