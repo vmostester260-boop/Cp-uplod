@@ -8,3 +8,5 @@ pyromod
 beautifulsoup4
 python-dotenv
 pymongo
+dnspython
+colorama
