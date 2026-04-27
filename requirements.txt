@@ -1,0 +1,9 @@
+pyrogram
+tgcrypto
+aiohttp
+aiofiles
+requests
+yt-dlp
+pyromod
+beautifulsoup4
+python-dotenv
